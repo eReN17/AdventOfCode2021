@@ -12,8 +12,6 @@ namespace Day8
         private char _bottomLeft;
         private char _bottomRight;
 
-        private string _n9 = string.Empty;
-
         private readonly string[] _signalPattern;
         private readonly string[] _outputValue;
 
@@ -21,35 +19,80 @@ namespace Day8
         {
             _signalPattern = entry.Split('|')[0].Split(' ').Where(v => !string.IsNullOrWhiteSpace(v)).ToArray();
             _outputValue = entry.Split('|')[1].Split(' ').Where(v => !string.IsNullOrWhiteSpace(v)).ToArray();
-
             Parse();
         }
 
         private void Parse()
         {
             // so terrible but it works :O
-            string n0 = string.Empty, n1, n2, n3, n4, n5, n6, n7, n8;
+            // im already sleeping this is bad...
+            // it worked
+            // still ashamed tho
+            // need to come back one day
 
-            // Number 1 characters representation
-            n1 = (from d in _signalPattern where d.Length == 2 select d).Single();
+            var n0 = string.Empty;
+            var n1 = (from d in _signalPattern where d.Length == 2 select d).Single();
+            var n2 = string.Empty;
+            var n3 = string.Empty;
+            var n4 = (from d in _signalPattern where d.Length == 4 select d).Single();
+            var n5 = string.Empty;
+            var n6 = string.Empty;  
+            var n8 = (from d in _signalPattern where d.Length == 7 select d).Single();
+            var n7 = (from d in _signalPattern where d.Length == 3 select d).Single();
+            var n9 = string.Empty;
 
-            // Number 7 characters representation
-            n7 = (from d in _signalPattern where d.Length == 3 select d).Single();
             // Character within 7 that is not in 1 is _top
             foreach (var c in n7)
                 if (!n1.Contains(c))
                     _top = c;
 
+            // 2,3,5
+            foreach (var pattern in _signalPattern.Where(p => p.Length == 5))
+            {
+                // contains both segment of number 1 means its 3
+                if (pattern.Contains(n1[0]) && pattern.Contains(n1[1]))
+                    n3 = pattern;
+                else
+                {
+                    var count = 0;
+                    foreach (var c in n4)
+                        if (pattern.Contains(c))
+                            count++;
+
+                    // 2 has 2 segments common with 4, 5 has 3
+                    if (count == 2)
+                        n2 = pattern;
+                    else
+                        n5 = pattern;
+                }
+            }
+
+            // I've got 2 and 5 already so i can set both _bottomRight and _topRight
+            foreach (var c in n1)
+                if (!n2.Contains(c))
+                    _bottomRight = c;
+                else if (!n5.Contains(c))
+                    _topRight = c;
+
             // Number 0,6 and 9 all have 6 lines in them
             foreach (var pattern in _signalPattern.Where(p => p.Length == 6))
             {
-                if (pattern.Contains(n1) || pattern.Contains($"{n1[1]}{n1[0]}"))
-                    n0 = pattern;
+                if (!pattern.Contains(_topRight))
+                    n6 = pattern;
+                else
+                {
+                    var count = 0;
+                    foreach (var c in n3)
+                        if (pattern.Contains(c))
+                            count++;
+
+                    if (count == 4)
+                        n0 = pattern;
+                    else
+                        n9 = pattern;   
+                }
             }
 
-            // Number 4 characters representation
-            // from that i can get  _topLeft and middle
-            n4 = (from d in _signalPattern where d.Length == 4 select d).Single();
             foreach (var c in n4)
             {
                 if (!n0.Contains(c))
@@ -63,55 +106,17 @@ namespace Day8
                 }
             }
 
-            // Number 2,5 and 3 all have 5 lines in them
-            // 3 is most easy if it contains both lines from number 1
-            foreach (var pattern in _signalPattern.Where(p => p.Length == 5))
+            foreach (var c in n3)
             {
-                if (pattern.Contains(_topLeft))
-                {
-                    n5 = pattern;
-                    foreach (var c in pattern)
-                        if (c != _top && c != _topLeft && c != _middle)
-                            if (n1.Contains(c))
-                            {
-                                _bottomRight = c;
-                            }
-                            else
-                            {
-                                _bottom = c;
-                            }
-                }
+                if (c != _bottomRight && c != _topRight && c != _top && c != _middle)
+                    _bottom = c;
             }
 
-            // Number 8 characters representation
-            n8 = (from d in _signalPattern where d.Length == 7 select d).Single();
-
-
-            foreach (var pattern in _signalPattern.Where(p => p.Length == 6 && !p.Contains(_middle)))
-            {
-                foreach (var c in n1)
-                {
-                    if (!pattern.Contains(c))
-                    {
-                        n6 = pattern;
-                        continue;
-                    }
-                }
-                _n9 = new string(pattern.ToCharArray().OrderBy(c => c).ToArray());
-            }
+            foreach (var c in n2)
+                if (c != _top && c != _middle && c != _bottom && c != _topRight)
+                    _bottomLeft = c;
         }
-
-        public int GetPart2()
-        {
-            var output = string.Empty;
-            foreach (var value in _outputValue)
-            {
-                output += GetDigit(value).ToString();
-            }
-            return int.Parse(output);
-        }
-
-        public int GetDigit(string value)
+        private int GetDigit(string value)
         {
             if (value.Length == 2)
                 return 1;
@@ -138,11 +143,21 @@ namespace Day8
                 // 0,6,9
                 if (!value.Contains(_middle))
                     return 0;
+                else if (value.Contains(_topRight))
+                    return 9;
                 else
-                {
-                    return (_n9 == new string(value.ToCharArray().OrderBy(c => c).ToArray()) ? 9 : 6);
-                }
+                    return 6;
             }
+        }
+
+        public int GetPart2()
+        {
+            var output = string.Empty;
+            foreach (var value in _outputValue)
+            {
+                output += GetDigit(value).ToString();
+            }
+            return int.Parse(output);
         }
 
         public int GetPart1()
