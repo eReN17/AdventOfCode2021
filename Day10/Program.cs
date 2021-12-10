@@ -7,7 +7,7 @@ var syntaxErrorPoints = new Dictionary<char, int>()
     { ')', 3 },
     { ']', 57 },
     { '}', 1197 },
-    { '>', 25137 },
+    { '>', 25137 }
 };
 
 var lines = File.ReadLines("input.txt");
@@ -48,11 +48,11 @@ foreach (var line in lines)
 
     if (!corrupted)
     {
-        var completionSequence = new StringBuilder();
+        var completionSequence = string.Empty;
         while (brackets.Count > 0)
-            completionSequence.Append(GetPair(brackets.Pop()));
+            completionSequence += GetPair(brackets.Pop());
 
-        var score = CalculateCompletionScore(completionSequence.ToString());
+        var score = CalculateCompletionScore(completionSequence);
 
         Debug.Assert(score > 0);
 
@@ -64,7 +64,7 @@ scores.Sort();
 
 Console.WriteLine("total syntax error score: {0}", total);
 
-Console.WriteLine("Middle completion score: {0}", scores[scores.Count / 2 + 1]);
+Console.WriteLine("Middle completion score: {0}", scores[scores.Count / 2]);
 
 static bool IsMatch(char opening, char closing)
     =>  opening == '(' && closing == ')' ||
@@ -83,12 +83,12 @@ static BigInteger CalculateCompletionScore(string completionSequence)
         { ')', 1 },
         { ']', 2 },
         { '}', 3 },
-        { '>', 4 },
+        { '>', 4 }
     };
 
     var score = BigInteger.Zero;
     foreach (var c in completionSequence)
-        score += (score * 5) + completionPoints[c];
+        score = (score * 5) + completionPoints[c];
     
     return score;
 }
